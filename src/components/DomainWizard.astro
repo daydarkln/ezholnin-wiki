@@ -1,0 +1,134 @@
+<section class="wizard" aria-labelledby="wizard-title" data-domain-wizard>
+  <div class="wizard-intro">
+    <p class="eyebrow">Пошаговый помощник</p>
+    <h2 id="wizard-title">Подключить свой домен</h2>
+    <p>Ответьте на несколько вопросов. Помощник покажет только безопасный следующий шаг.</p>
+  </div>
+  <div class="wizard-card">
+    <div data-wizard-content></div>
+    <button data-wizard-reset class="text-button" type="button" hidden>Начать заново</button>
+  </div>
+</section>
+
+<script>
+  import { getWizardResult, type WizardContext } from '../lib/domain-wizard'
+  import { makeTelegramShareLink, trackGoal } from '../lib/analytics'
+
+  const root = document.querySelector<HTMLElement>('[data-domain-wizard]')
+  const content = root?.querySelector<HTMLElement>('[data-wizard-content]')
+  const reset = root?.querySelector<HTMLButtonElement>('[data-wizard-reset]')
+  const state: WizardContext = {}
+
+  type Question = {
+    key: keyof WizardContext
+    title: string
+    options: Array<{ value: string; label: string; description?: string }>
+  }
+
+  const questions: Question[] = [
+    { key: 'hosting', title: 'Где будет размещён сайт?', options: [{ value: 'mine', label: 'На сервере разработчика — 500 ₽/мес.' }, { value: 'external', label: 'На другом хостинге' }] },
+    { key: 'domain', title: 'У вас уже есть домен?', options: [{ value: 'registered', label: 'Да, домен куплен' }, { value: 'not-registered', label: 'Нет, ещё не купил' }] },
+    { key: 'dns', title: 'Где управляются DNS-записи?', options: [{ value: 'reg-ru', label: 'REG.RU' }, { value: 'other', label: 'Другой провайдер' }, { value: 'unknown', label: 'Не знаю' }] },
+    { key: 'email', title: 'Используется корпоративная почта на домене?', options: [{ value: 'no', label: 'Нет' }, { value: 'yes', label: 'Да' }, { value: 'unknown', label: 'Не знаю' }] },
+    { key: 'cname', title: 'Есть ли CNAME-запись для www?', options: [{ value: 'no', label: 'Нет' }, { value: 'yes', label: 'Да' }, { value: 'unknown', label: 'Не знаю' }] },
+  ]
+
+  function getNextQuestion(): Question | undefined {
+    if (!state.hosting) return questions[0]
+    if (state.hosting === 'external') return undefined
+    if (!state.domain) return questions[1]
+    if (state.domain === 'not-registered') return undefined
+    if (!state.dns) return questions[2]
+    if (state.dns !== 'reg-ru') return undefined
+    if (!state.email) return questions[3]
+    if (state.email !== 'no') return undefined
+    if (!state.cname) return questions[4]
+    return undefined
+  }
+
+  function showQuestion(question: Question) {
+    if (!content) return
+    content.replaceChildren()
+    const heading = document.createElement('h3')
+    heading.textContent = question.title
+    const list = document.createElement('div')
+    list.className = 'wizard-options'
+    question.options.forEach((option) => {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'wizard-option'
+      button.textContent = option.label
+      button.addEventListener('click', () => {
+        state[question.key] = option.value as never
+        render()
+      })
+      list.append(button)
+    })
+    content.append(heading, list)
+  }
+
+  function showResult() {
+    if (!content) return
+    const result = getWizardResult(state)
+    if (!result) return
+    content.replaceChildren()
+    const badge = document.createElement('p')
+    badge.className = `wizard-result-kind ${result.kind}`
+    badge.textContent = result.kind === 'records' ? 'Готовая инструкция' : 'Безопасный следующий шаг'
+    const heading = document.createElement('h3')
+    heading.textContent = result.title
+    const description = document.createElement('p')
+    description.textContent = result.description
+    content.append(badge, heading, description)
+
+    if (result.kind === 'records') {
+      const table = document.createElement('div')
+      table.className = 'dns-records'
+      result.records.forEach((record) => {
+        const row = document.createElement('p')
+        row.textContent = `${record.name}  ·  ${record.type}  ·  ${record.value}`
+        table.append(row)
+      })
+      content.append(table)
+    }
+
+    if (result.kind === 'need-domain') {
+      const link = document.createElement('a')
+      link.className = 'button button-secondary'
+      link.href = `/articles/${result.articleSlug}`
+      link.textContent = 'Как купить домен'
+      content.append(link)
+    }
+
+    if (result.kind === 'contact') {
+      const link = document.createElement('a')
+      link.className = 'button'
+      link.target = '_blank'
+      link.rel = 'noreferrer'
+      link.href = makeTelegramShareLink(`Здравствуйте! Нужна помощь с подключением домена. Результат помощника: ${result.title}.`)
+      link.textContent = 'Написать в Telegram'
+      link.addEventListener('click', () => trackGoal('wiki_wizard_telegram'), { once: true })
+      content.append(link)
+    }
+  }
+
+  function render() {
+    const question = getNextQuestion()
+    if (question) {
+      showQuestion(question)
+      if (reset) reset.hidden = true
+      return
+    }
+    showResult()
+    if (reset) reset.hidden = false
+    trackGoal('wiki_wizard_complete')
+  }
+
+  reset?.addEventListener('click', () => {
+    Object.keys(state).forEach((key) => delete state[key as keyof WizardContext])
+    render()
+  })
+
+  trackGoal('wiki_wizard_start')
+  render()
+</script>

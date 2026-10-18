@@ -1,0 +1,18 @@
+---
+import CookieConsent from '../components/CookieConsent.astro'
+import Footer from '../components/Footer.astro'
+import Header from '../components/Header.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout title="Страница не найдена | Вики Егора Жолнина" description="Вернитесь к базе знаний о разработке лендинга." canonicalPath="/404">
+  <Header />
+  <main class="shell not-found">
+    <p class="eyebrow">404</p>
+    <h1>Такой страницы пока нет</h1>
+    <p>Вернитесь к базе знаний или задайте вопрос напрямую.</p>
+    <div class="hero-actions"><a class="button" href="/">Открыть вики</a><a class="button button-secondary" href="https://t.me/daydark" target="_blank" rel="noreferrer">Написать в Telegram</a></div>
+  </main>
+  <Footer />
+  <CookieConsent />
+</BaseLayout>

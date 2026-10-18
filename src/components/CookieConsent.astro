@@ -1,0 +1,29 @@
+<aside class="cookie-banner" data-cookie-consent hidden aria-label="Настройки аналитики">
+  <p>Использую Яндекс Метрику после вашего согласия: она помогает понять, какие разделы вики полезны. Поисковые фразы в аналитику не передаются.</p>
+  <div class="cookie-actions">
+    <button type="button" class="button button-secondary" data-cookie-reject>Только необходимые</button>
+    <button type="button" class="button" data-cookie-accept>Разрешить аналитику</button>
+  </div>
+</aside>
+
+<script>
+  import { hasAnalyticsConsent, initializeAnalytics, setAnalyticsConsent } from '../lib/analytics'
+
+  const consentKey = 'ezholnin-wiki:analytics-consent'
+  const banner = document.querySelector<HTMLElement>('[data-cookie-consent]')
+  const storedConsent = window.localStorage.getItem(consentKey)
+
+  if (hasAnalyticsConsent()) initializeAnalytics()
+  if (!storedConsent && banner) banner.hidden = false
+
+  document.querySelector('[data-cookie-accept]')?.addEventListener('click', () => {
+    setAnalyticsConsent('accepted')
+    initializeAnalytics()
+    if (banner) banner.hidden = true
+  })
+
+  document.querySelector('[data-cookie-reject]')?.addEventListener('click', () => {
+    setAnalyticsConsent('rejected')
+    if (banner) banner.hidden = true
+  })
+</script>

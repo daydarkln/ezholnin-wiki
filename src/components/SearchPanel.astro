@@ -1,0 +1,77 @@
+<section id="search" class="search-panel" aria-labelledby="search-title">
+  <div class="search-copy">
+    <p class="eyebrow">Справочник клиента</p>
+    <h2 id="search-title">С чем помочь?</h2>
+    <p>Напишите вопрос обычными словами: «как подключить домен», «хочу поменять фотографии» или «нужно ли платить каждый месяц».</p>
+  </div>
+  <div class="search-box">
+    <label class="sr-only" for="knowledge-search">Поиск по вики</label>
+    <input id="knowledge-search" data-search-input type="search" autocomplete="off" placeholder="Например, как привязать сайт?" />
+    <div data-search-status class="search-status" aria-live="polite"></div>
+    <div data-search-results class="search-results"></div>
+    <div data-search-empty class="search-empty" hidden>
+      <p>Пока нет точного ответа. Отправьте вопрос — я дополню вики.</p>
+      <a class="button" data-search-contact target="_blank" rel="noreferrer">Спросить в Telegram</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { getCategoryById } from '../data/knowledge'
+  import { trackGoal, makeTelegramShareLink } from '../lib/analytics'
+  import { searchKnowledge } from '../lib/search'
+
+  const input = document.querySelector<HTMLInputElement>('[data-search-input]')
+  const results = document.querySelector<HTMLElement>('[data-search-results]')
+  const status = document.querySelector<HTMLElement>('[data-search-status]')
+  const empty = document.querySelector<HTMLElement>('[data-search-empty]')
+  const contact = document.querySelector<HTMLAnchorElement>('[data-search-contact]')
+
+  function clearResults() {
+    if (results) results.replaceChildren()
+  }
+
+  function renderResults(query: string) {
+    const found = searchKnowledge(query)
+    clearResults()
+    if (empty) empty.hidden = true
+
+    if (query.trim().length < 2) {
+      if (status) status.textContent = ''
+      return
+    }
+
+    trackGoal('wiki_search')
+
+    if (found.length === 0) {
+      if (status) status.textContent = 'Ничего точного не нашли.'
+      if (empty) empty.hidden = false
+      if (contact) {
+        contact.href = makeTelegramShareLink(`Здравствуйте! Не нашёл ответ в вики. Мой вопрос: ${query}`)
+        contact.addEventListener('click', () => trackGoal('wiki_search_empty_telegram'), { once: true })
+      }
+      trackGoal('wiki_search_empty')
+      return
+    }
+
+    if (status) status.textContent = `Нашли ${found.length} ${found.length === 1 ? 'материал' : 'материала'}.`
+    const fragment = document.createDocumentFragment()
+    found.slice(0, 6).forEach((article) => {
+      const link = document.createElement('a')
+      link.className = 'search-result'
+      link.href = `/articles/${article.slug}`
+      const path = document.createElement('span')
+      path.className = 'search-result-path'
+      path.textContent = getCategoryById(article.categoryId).title
+      const title = document.createElement('strong')
+      title.textContent = article.title
+      const summary = document.createElement('span')
+      summary.textContent = article.summary
+      link.append(path, title, summary)
+      fragment.append(link)
+    })
+    results?.append(fragment)
+  }
+
+  input?.addEventListener('input', () => renderResults(input.value))
+</script>

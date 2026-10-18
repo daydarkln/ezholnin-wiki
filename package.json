@@ -1,0 +1,32 @@
+{
+  "name": "ezholnin-wiki",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "yarn@1.22.22",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "verify": "yarn run check && yarn test && yarn build && node scripts/verify-build.mjs",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/jost": "5.2.6",
+    "astro": "5.16.11",
+    "fuse.js": "7.1.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.4",
+    "@emnapi/runtime": "1.11.3",
+    "@types/node": "22.10.5",
+    "@playwright/test": "1.57.0",
+    "typescript": "5.7.3",
+    "vitest": "3.0.7"
+  },
+  "resolutions": {
+    "undici": "7.16.0"
+  }
+}

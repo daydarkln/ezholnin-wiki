@@ -1,0 +1,23 @@
+---
+type Props = { articleTitle?: string }
+const { articleTitle = 'вики' } = Astro.props
+---
+
+<aside class="contact-cta" data-contact-cta>
+  <p class="eyebrow">Не нашли ответ?</p>
+  <h2>Напишите в Telegram</h2>
+  <p>Сформирую ответ и добавлю недостающую инструкцию в вики.</p>
+  <a class="button" data-contact-link data-article-title={articleTitle} target="_blank" rel="noreferrer">Задать вопрос</a>
+  <a class="contact-handle" href="https://t.me/daydark" target="_blank" rel="noreferrer">@daydark</a>
+</aside>
+
+<script>
+  import { makeTelegramShareLink, trackGoal } from '../lib/analytics'
+
+  const link = document.querySelector<HTMLAnchorElement>('[data-contact-link]')
+  if (link) {
+    const title = link.dataset.articleTitle ?? 'вики'
+    link.href = makeTelegramShareLink(`Здравствуйте! У меня вопрос по материалу «${title}».`)
+    link.addEventListener('click', () => trackGoal('wiki_telegram_click'))
+  }
+</script>

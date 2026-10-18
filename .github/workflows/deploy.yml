@@ -1,0 +1,68 @@
+name: Deploy wiki
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: wiki-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DEPLOY_HOST: ${{ secrets.WIKI_DEPLOY_HOST }}
+      DEPLOY_PORT: ${{ secrets.WIKI_DEPLOY_PORT }}
+      DEPLOY_USER: ${{ secrets.WIKI_DEPLOY_USER }}
+      RELEASE_SHA: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run checks and build
+        run: yarn verify
+
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Test browser flows
+        run: yarn test:e2e
+
+      - name: Package release
+        run: tar -czf "wiki-${RELEASE_SHA}.tar.gz" dist deploy
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.WIKI_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.WIKI_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Upload and publish release
+        run: |
+          set -euo pipefail
+          deploy_host="${DEPLOY_HOST:-141.105.70.232}"
+          deploy_port="${DEPLOY_PORT:-22}"
+          deploy_user="${DEPLOY_USER:-root}"
+          scp -P "$deploy_port" -i ~/.ssh/id_ed25519 "wiki-${RELEASE_SHA}.tar.gz" "$deploy_user@$deploy_host:/tmp/wiki-${RELEASE_SHA}.tar.gz"
+          ssh -p "$deploy_port" -i ~/.ssh/id_ed25519 "$deploy_user@$deploy_host" "RELEASE_SHA=${RELEASE_SHA} BUNDLE_PATH=/tmp/wiki-${RELEASE_SHA}.tar.gz /bin/bash -s" < deploy/remote-deploy.sh
+          curl --fail --retry 5 --retry-delay 3 --retry-all-errors https://wiki.ezholnin.ru/

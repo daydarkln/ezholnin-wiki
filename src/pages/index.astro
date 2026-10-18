@@ -1,0 +1,92 @@
+---
+import CookieConsent from '../components/CookieConsent.astro'
+import DomainWizard from '../components/DomainWizard.astro'
+import Footer from '../components/Footer.astro'
+import Header from '../components/Header.astro'
+import KnowledgeTree from '../components/KnowledgeTree.astro'
+import SearchPanel from '../components/SearchPanel.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { getArticleById, getArticlesByCategory, knowledgeCategories, popularArticleIds } from '../data/knowledge'
+
+const popularArticles = popularArticleIds.flatMap((id) => {
+  const article = getArticleById(id)
+  return article ? [article] : []
+})
+---
+
+<BaseLayout
+  title="Вики о разработке лендинга | Егор Жолнин"
+  description="Понятные инструкции для клиентов: процесс разработки лендинга, домен, хостинг, запуск и изменения сайта."
+>
+  <Header />
+  <main>
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div>
+          <p class="eyebrow">База знаний для клиентов</p>
+          <h1>От первого сообщения до работающего лендинга</h1>
+          <p class="hero-lead">Здесь собраны простые ответы о разработке, домене, хостинге и запуске. Не нужно разбираться в технических терминах — начните со своей задачи.</p>
+          <div class="hero-actions">
+            <a class="button" href="#search">Найти ответ</a>
+            <a class="button button-secondary" href="#domain-wizard">Подключить домен</a>
+          </div>
+        </div>
+        <aside class="hero-note">
+          <span class="note-icon" aria-hidden="true">?</span>
+          <div>
+            <strong>Не знаете, с чего начать?</strong>
+            <p>Достаточно рассказать о задаче голосом, текстом, ссылкой или презентацией. Структуру лендинга соберём вместе.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <div class="shell home-layout">
+      <aside class="home-tree"><KnowledgeTree /></aside>
+      <div class="home-content">
+        <SearchPanel />
+
+        <section class="popular" aria-labelledby="popular-title">
+          <div class="section-heading">
+            <p class="eyebrow">Часто ищут</p>
+            <h2 id="popular-title">Главное в одном месте</h2>
+          </div>
+          <div class="article-grid article-grid-4">
+            {popularArticles.map((article) => (
+              <a class="article-card" href={`/articles/${article.slug}`}>
+                <span>{article.title}</span>
+                <small>{article.summary}</small>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <section class="category-section" aria-labelledby="categories-title">
+          <div class="section-heading">
+            <p class="eyebrow">Все разделы</p>
+            <h2 id="categories-title">Выберите задачу</h2>
+          </div>
+          <div class="category-grid">
+            {knowledgeCategories.map((category) => {
+              const articles = getArticlesByCategory(category.id)
+              return (
+                <section id={category.id} class="category-card">
+                  <p class="category-count">{String(articles.length).padStart(2, '0')}</p>
+                  <h3>{category.title}</h3>
+                  <p>{category.description}</p>
+                  <ul>
+                    {articles.map((article) => <li><a href={`/articles/${article.slug}`}>{article.title}</a></li>)}
+                  </ul>
+                </section>
+              )
+            })}
+          </div>
+        </section>
+
+        <div id="domain-wizard"><DomainWizard /></div>
+      </div>
+    </div>
+  </main>
+  <Footer />
+  <CookieConsent />
+</BaseLayout>

@@ -1,0 +1,81 @@
+---
+import ContactCta from '../../components/ContactCta.astro'
+import CookieConsent from '../../components/CookieConsent.astro'
+import Footer from '../../components/Footer.astro'
+import Header from '../../components/Header.astro'
+import KnowledgeTree from '../../components/KnowledgeTree.astro'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { getArticleById, getCategoryById, knowledgeArticles } from '../../data/knowledge'
+
+export function getStaticPaths() {
+  return knowledgeArticles.map((article) => ({ params: { slug: article.slug }, props: { article } }))
+}
+
+const { article } = Astro.props
+const category = getCategoryById(article.categoryId)
+const relatedArticles = article.relatedIds.flatMap((id: string) => {
+  const related = getArticleById(id)
+  return related ? [related] : []
+})
+const nextArticles = article.nextIds.flatMap((id: string) => {
+  const next = getArticleById(id)
+  return next ? [next] : []
+})
+---
+
+<BaseLayout title={`${article.title} | Вики Егора Жолнина`} description={article.summary} canonicalPath={`/articles/${article.slug}`} article>
+  <Header />
+  <main class="shell article-shell">
+    <details class="mobile-tree" data-testid="mobile-tree">
+      <summary>Разделы вики</summary>
+      <KnowledgeTree activeSlug={article.slug} />
+    </details>
+    <aside class="article-aside">
+      <KnowledgeTree activeSlug={article.slug} />
+    </aside>
+    <article class="article-content">
+      <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <a href="/">Вики</a><span>/</span><a href={`/#${article.categoryId}`}>{category.title}</a><span>/</span><span>{article.title}</span>
+      </nav>
+      <header class="article-header">
+        <p class="eyebrow">{category.title}</p>
+        <h1>{article.title}</h1>
+        <p class="article-summary">{article.summary}</p>
+        <p class="article-updated">Инструкция проверена: {new Intl.DateTimeFormat('ru-RU', { dateStyle: 'long' }).format(new Date(`${article.updatedAt}T12:00:00Z`))}</p>
+      </header>
+
+      <div class="article-body">
+        <p class="article-intro">{article.intro}</p>
+        {article.sections.map((section) => (
+          <section>
+            <h2>{section.heading}</h2>
+            {section.paragraphs?.map((paragraph) => <p>{paragraph}</p>)}
+            {section.bullets && <ul>{section.bullets.map((item) => <li>{item}</li>)}</ul>}
+            {section.records && (
+              <dl class="article-records">
+                {section.records.map((record) => <div><dt>{record.label}</dt><dd>{record.value}</dd></div>)}
+              </dl>
+            )}
+          </section>
+        ))}
+
+        {article.warning && <aside class="warning"><strong>Важно</strong><p>{article.warning}</p></aside>}
+
+        {article.source && (
+          <p class="article-source">Источник: <a href={article.source.url} target="_blank" rel="noreferrer">{article.source.label}</a></p>
+        )}
+      </div>
+
+      {(relatedArticles.length > 0 || nextArticles.length > 0) && (
+        <section class="article-links" aria-label="Продолжить чтение">
+          {nextArticles.length > 0 && <div><p class="eyebrow">Следующий шаг</p>{nextArticles.map((item) => <a class="linked-article primary" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}</div>}
+          {relatedArticles.length > 0 && <div><p class="eyebrow">Связанные темы</p><div class="linked-articles">{relatedArticles.map((item) => <a class="linked-article" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}</div></div>}
+        </section>
+      )}
+
+      <ContactCta articleTitle={article.title} />
+    </article>
+  </main>
+  <Footer />
+  <CookieConsent />
+</BaseLayout>

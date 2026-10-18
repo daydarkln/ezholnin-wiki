@@ -1,0 +1,26 @@
+---
+import { getArticlesByCategory, knowledgeCategories } from '../data/knowledge'
+
+type Props = { activeSlug?: string }
+const { activeSlug } = Astro.props
+---
+
+<nav class="knowledge-tree" aria-label="Дерево базы знаний">
+  <p class="eyebrow">Дерево знаний</p>
+  {knowledgeCategories.map((category) => {
+    const articles = getArticlesByCategory(category.id)
+    const isOpen = articles.some((article) => article.slug === activeSlug)
+    return (
+      <details open={isOpen || undefined}>
+        <summary>{category.title}<span>{articles.length}</span></summary>
+        <ul>
+          {articles.map((article) => (
+            <li>
+              <a class:list={[{ active: article.slug === activeSlug }]} href={`/articles/${article.slug}`}>{article.title}</a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    )
+  })}
+</nav>
