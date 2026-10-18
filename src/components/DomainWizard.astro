@@ -6,7 +6,9 @@
   </div>
   <div class="wizard-card">
     <div data-wizard-content></div>
-    <button data-wizard-reset class="text-button" type="button" hidden>Начать заново</button>
+    <div class="wizard-actions" data-wizard-actions>
+      <button data-wizard-reset class="button button-secondary" type="button" hidden>Начать заново</button>
+    </div>
   </div>
 </section>
 
@@ -16,6 +18,7 @@
 
   const root = document.querySelector<HTMLElement>('[data-domain-wizard]')
   const content = root?.querySelector<HTMLElement>('[data-wizard-content]')
+  const actions = root?.querySelector<HTMLElement>('[data-wizard-actions]')
   const reset = root?.querySelector<HTMLButtonElement>('[data-wizard-reset]')
   const state: WizardContext = {}
 
@@ -48,6 +51,8 @@
 
   function showQuestion(question: Question) {
     if (!content) return
+    reset?.setAttribute('hidden', '')
+    if (actions && reset) actions.replaceChildren(reset)
     content.replaceChildren()
     const heading = document.createElement('h3')
     heading.textContent = question.title
@@ -69,6 +74,7 @@
 
   function showResult() {
     if (!content) return
+    if (actions && reset) actions.replaceChildren()
     const result = getWizardResult(state)
     if (!result) return
     content.replaceChildren()
@@ -97,7 +103,7 @@
       link.className = 'button button-secondary'
       link.href = `/articles/${result.articleSlug}`
       link.textContent = 'Как купить домен'
-      content.append(link)
+      actions?.append(link)
     }
 
     if (result.kind === 'contact') {
@@ -108,7 +114,12 @@
       link.href = makeTelegramShareLink(`Здравствуйте! Нужна помощь с подключением домена. Результат помощника: ${result.title}.`)
       link.textContent = 'Написать в Telegram'
       link.addEventListener('click', () => trackGoal('wiki_wizard_telegram'), { once: true })
-      content.append(link)
+      actions?.append(link)
+    }
+
+    if (reset) {
+      reset.hidden = false
+      actions?.append(reset)
     }
   }
 
@@ -116,11 +127,9 @@
     const question = getNextQuestion()
     if (question) {
       showQuestion(question)
-      if (reset) reset.hidden = true
       return
     }
     showResult()
-    if (reset) reset.hidden = false
     trackGoal('wiki_wizard_complete')
   }
 

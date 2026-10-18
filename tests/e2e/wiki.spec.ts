@@ -42,6 +42,16 @@ test('places the desktop questionnaire below the heading', async ({ page }) => {
   expect(cardBox!.width).toBeGreaterThan(700)
 })
 
+test('groups wizard result actions as buttons', async ({ page }) => {
+  await page.goto('/#domain-wizard')
+  await page.getByRole('button', { name: 'На сервере разработчика — 500 ₽/мес.' }).click()
+  await page.getByRole('button', { name: 'Нет, ещё не купил' }).click()
+  const actions = page.locator('[data-wizard-actions]')
+  await expect(actions.getByRole('link', { name: 'Как купить домен' })).toBeVisible()
+  await expect(actions.getByRole('button', { name: 'Начать заново' })).toBeVisible()
+  await expect(actions.getByRole('button', { name: 'Начать заново' })).toHaveClass(/button-secondary/)
+})
+
 test('builds Telegram share links instead of submitting data', async ({ page }) => {
   await page.goto('/articles/reg-ru-dns')
   const href = await page.locator('[data-contact-link]').getAttribute('href')
