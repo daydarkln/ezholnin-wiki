@@ -28,13 +28,18 @@ test('keeps DNS changes safe when corporate email exists', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Сначала проверим корпоративную почту' })).toBeVisible()
 })
 
-test('keeps the desktop wizard title on one line', async ({ page }) => {
+test('places the desktop questionnaire below the heading', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/#domain-wizard')
   const title = page.getByRole('heading', { name: 'Подключить свой домен' })
+  const card = page.locator('.wizard-card')
   await expect(title).toBeVisible()
+  await expect(card).toBeVisible()
   const height = await title.evaluate((element) => element.getBoundingClientRect().height)
+  const [titleBox, cardBox] = await Promise.all([title.boundingBox(), card.boundingBox()])
   expect(height).toBeLessThan(60)
+  expect(cardBox!.y).toBeGreaterThan(titleBox!.y + titleBox!.height)
+  expect(cardBox!.width).toBeGreaterThan(700)
 })
 
 test('builds Telegram share links instead of submitting data', async ({ page }) => {
