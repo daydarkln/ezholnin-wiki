@@ -28,6 +28,15 @@ test('keeps DNS changes safe when corporate email exists', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Сначала проверим корпоративную почту' })).toBeVisible()
 })
 
+test('keeps the desktop wizard title on one line', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/#domain-wizard')
+  const title = page.getByRole('heading', { name: 'Подключить свой домен' })
+  await expect(title).toBeVisible()
+  const height = await title.evaluate((element) => element.getBoundingClientRect().height)
+  expect(height).toBeLessThan(60)
+})
+
 test('builds Telegram share links instead of submitting data', async ({ page }) => {
   await page.goto('/articles/reg-ru-dns')
   const href = await page.locator('[data-contact-link]').getAttribute('href')
