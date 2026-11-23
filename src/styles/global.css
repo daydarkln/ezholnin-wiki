@@ -124,6 +124,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .breadcrumbs a:hover { color: var(--primary-strong); }
 .article-header { margin: 25px 0 46px; }
 .article-header h1 { max-width: 790px; margin: 0; font-size: clamp(2.4rem, 5vw, 4.1rem); line-height: 1.02; letter-spacing: -.06em; }
+.article-heading { scroll-margin-top: 6rem; }
+.article-heading-hash { color: var(--muted); font-size: .72em; letter-spacing: normal; }
+.article-heading > a:is(:hover, :focus-visible), .article-heading:target .article-heading-hash { color: var(--primary-strong); }
 .article-summary { max-width: 670px; margin: 20px 0 0; color: var(--muted); font-size: 1.17rem; line-height: 1.6; }
 .article-updated { margin: 21px 0 0; color: var(--quiet); font-size: .84rem; }
 .article-body { color: #d9e2f0; font-size: 1.04rem; line-height: 1.72; }
@@ -138,11 +141,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .article-records dt { color: var(--primary-strong); font-weight: 700; }
 .article-records dd { margin: 0; color: var(--muted); }
 .warning { margin: 38px 0; padding: 18px 20px; border: 1px solid rgba(255,199,181,.45); border-radius: 10px; background: rgba(255,140,100,.08); color: var(--danger); }
-.warning strong { color: #ffd9cb; }
+.article-body .warning h2 { margin: 0; color: #ffd9cb; font-size: inherit; letter-spacing: normal; line-height: inherit; }
 .warning p { margin: 7px 0 0; line-height: 1.55; }
 .article-source { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
 .article-source :is(p, ul) { margin: 0; }
-.article-source a { color: var(--primary-strong); text-decoration: underline; text-underline-offset: 3px; }
+.article-source :is(p, ul) a { color: var(--primary-strong); text-decoration: underline; text-underline-offset: 3px; }
 .article-links { display: grid; gap: 30px; margin-top: 56px; padding-top: 38px; border-top: 1px solid var(--line); }
 .linked-articles { display: grid; gap: 9px; }
 .linked-article { display: grid; gap: 4px; padding: 15px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-soft); font-weight: 700; transition: border .18s ease; }

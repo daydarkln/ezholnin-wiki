@@ -1,4 +1,5 @@
 ---
+import ArticleHeading from '../../components/ArticleHeading.astro'
 import ContactCta from '../../components/ContactCta.astro'
 import CookieConsent from '../../components/CookieConsent.astro'
 import Footer from '../../components/Footer.astro'
@@ -23,6 +24,23 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
   const next = getArticleById(id)
   return next ? [next] : []
 })
+
+const headingIds = new Set(['child-articles-title', 'contact'])
+
+function headingId(title: string): string {
+  const slug = title.normalize('NFKC').toLocaleLowerCase('ru-RU')
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-|-$/g, '') || 'section'
+  let id = slug
+  let suffix = 2
+
+  while (headingIds.has(id)) {
+    id = `${slug}-${suffix++}`
+  }
+
+  headingIds.add(id)
+  return id
+}
 ---
 
 <BaseLayout title={`${article.title} | Вики Егора Жолнина`} description={article.summary} canonicalPath={`/articles/${article.slug}`} article>
@@ -43,7 +61,7 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
       </nav>
       <header class="article-header">
         <p class="eyebrow">{category.title}</p>
-        <h1>{article.title}</h1>
+        <ArticleHeading level={1} id={headingId(article.title)}>{article.title}</ArticleHeading>
         <p class="article-summary">{article.summary}</p>
         <p class="article-updated">Инструкция проверена: {new Intl.DateTimeFormat('ru-RU', { dateStyle: 'long' }).format(new Date(`${article.updatedAt}T12:00:00Z`))}</p>
       </header>
@@ -52,7 +70,7 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
         <p class="article-intro">{article.intro}</p>
         {childArticles.length > 0 && (
           <section aria-labelledby="child-articles-title">
-            <h2 id="child-articles-title">Инструкции по CRM</h2>
+            <ArticleHeading id="child-articles-title">Инструкции по CRM</ArticleHeading>
             <div class="linked-articles">
               {childArticles.map((item) => <a class="linked-article" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}
             </div>
@@ -60,7 +78,7 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
         )}
         {article.sections.map((section) => (
           <section>
-            <h2>{section.heading}</h2>
+            <ArticleHeading id={headingId(section.heading)}>{section.heading}</ArticleHeading>
             {section.paragraphs?.map((paragraph) => <p>{paragraph}</p>)}
             {section.bullets && <ul>{section.bullets.map((item) => <li>{item}</li>)}</ul>}
             {section.records && (
@@ -71,7 +89,12 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
           </section>
         ))}
 
-        {article.warning && <aside class="warning"><strong>Важно</strong><p>{article.warning}</p></aside>}
+        {article.warning && (
+          <aside class="warning">
+            <ArticleHeading id={headingId('Важно')}>Важно</ArticleHeading>
+            <p>{article.warning}</p>
+          </aside>
+        )}
 
         {article.sources && (
           <div class="article-source">
@@ -79,7 +102,7 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
               <p>Источник: <a href={article.sources[0].url} target="_blank" rel="noreferrer">{article.sources[0].label}</a></p>
             ) : (
               <>
-                <h2>Источники</h2>
+                <ArticleHeading id={headingId('Источники')}>Источники</ArticleHeading>
                 <ul>{article.sources.map((source) => <li><a href={source.url} target="_blank" rel="noreferrer">{source.label}</a></li>)}</ul>
               </>
             )}
@@ -89,8 +112,18 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
 
       {(relatedArticles.length > 0 || nextArticles.length > 0) && (
         <section class="article-links" aria-label="Продолжить чтение">
-          {nextArticles.length > 0 && <div><p class="eyebrow">Следующий шаг</p>{nextArticles.map((item) => <a class="linked-article primary" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}</div>}
-          {relatedArticles.length > 0 && <div><p class="eyebrow">Связанные темы</p><div class="linked-articles">{relatedArticles.map((item) => <a class="linked-article" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}</div></div>}
+          {nextArticles.length > 0 && (
+            <div>
+              <ArticleHeading id={headingId('Следующий шаг')} class="eyebrow">Следующий шаг</ArticleHeading>
+              {nextArticles.map((item) => <a class="linked-article primary" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}
+            </div>
+          )}
+          {relatedArticles.length > 0 && (
+            <div>
+              <ArticleHeading id={headingId('Связанные темы')} class="eyebrow">Связанные темы</ArticleHeading>
+              <div class="linked-articles">{relatedArticles.map((item) => <a class="linked-article" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}</div>
+            </div>
+          )}
         </section>
       )}
 

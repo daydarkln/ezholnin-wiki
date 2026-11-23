@@ -1,0 +1,14 @@
+---
+type Props = {
+  id: string
+  level?: 1 | 2
+  class?: string
+}
+
+const { id, level = 2, class: className } = Astro.props
+const Tag = level === 1 ? 'h1' : 'h2'
+---
+
+<Tag id={id} class:list={['article-heading', className]}>
+  <a href={`#${id}`}><slot /><span class="article-heading-hash" aria-hidden="true">&nbsp;#</span></a>
+</Tag>

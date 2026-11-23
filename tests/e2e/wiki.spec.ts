@@ -16,7 +16,7 @@ test('opens a CRM subpage from the guide and finds it through search', async ({ 
   await page.goto('/#integrations')
   await page.locator('#integrations').getByRole('link', { name: 'Как подключить сайт к CRM' }).click()
   const guides = page.getByRole('region', { name: 'Инструкции по CRM' })
-  await expect(guides.getByRole('link')).toHaveCount(4)
+  await expect(guides.locator('.linked-articles').getByRole('link')).toHaveCount(4)
   await guides.getByRole('link', { name: /Как подключить Битрикс24/ }).click()
   await expect(page).toHaveURL(/\/articles\/crm\/bitrix24\/?$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Как подключить Битрикс24' })).toBeVisible()
@@ -27,6 +27,34 @@ test('opens a CRM subpage from the guide and finds it through search', async ({ 
   await page.getByRole('searchbox', { name: 'Поиск по вики' }).fill('1с crm')
   const result = page.locator('[data-search-results]').getByRole('link', { name: /Как подключить 1С:CRM/ })
   await expect(result).toHaveAttribute('href', '/articles/crm/1c-crm')
+})
+
+test('opens article headings by fragment and keeps them below the mobile header', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/articles/yandex-metrika')
+  const headings = page.getByRole('article').getByRole('heading')
+  const permalinks = await headings.evaluateAll((elements) =>
+    elements.map((heading) => ({ id: heading.id, href: heading.querySelector('a')?.getAttribute('href') })),
+  )
+  expect(new Set(permalinks.map(({ id }) => id)).size).toBe(permalinks.length)
+  for (const { id, href } of permalinks) {
+    expect(id).toBeTruthy()
+    expect(href).toBe(`#${id}`)
+  }
+
+  const section = headings.filter({ hasText: '3. Проверьте счётчик и цель' })
+  const fragment = '#3-проверьте-счётчик-и-цель'
+  await section.getByRole('link').click()
+  expect(decodeURIComponent(new URL(page.url()).hash)).toBe(fragment)
+
+  await page.goto('/')
+  await page.goto(`/articles/yandex-metrika${fragment}`)
+  await expect(section).toHaveJSProperty('id', fragment.slice(1))
+  await expect.poll(async () => {
+    const header = await page.locator('.site-header').boundingBox()
+    const heading = await section.boundingBox()
+    return Boolean(header && heading && heading.y >= header.y + header.height && heading.y < 140)
+  }).toBe(true)
 })
 
 test('opens knowledge navigation on mobile', async ({ page }) => {
