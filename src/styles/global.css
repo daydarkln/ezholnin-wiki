@@ -65,6 +65,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .knowledge-tree summary::-webkit-details-marker { display: none; }
 .knowledge-tree summary span { color: var(--quiet); font-size: .8rem; }
 .knowledge-tree ul { display: grid; gap: 8px; margin: 0 0 13px; padding: 0 0 0 4px; list-style: none; }
+.knowledge-tree .knowledge-children { margin: 8px 0 0 6px; padding-left: 12px; border-left: 1px solid var(--line); }
 .knowledge-tree a { display: block; color: var(--muted); font-size: .87rem; line-height: 1.35; }
 .knowledge-tree a:hover, .knowledge-tree a.active { color: var(--primary-strong); }
 
@@ -139,7 +140,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .warning { margin: 38px 0; padding: 18px 20px; border: 1px solid rgba(255,199,181,.45); border-radius: 10px; background: rgba(255,140,100,.08); color: var(--danger); }
 .warning strong { color: #ffd9cb; }
 .warning p { margin: 7px 0 0; line-height: 1.55; }
-.article-source { margin-top: 36px !important; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+.article-source { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+.article-source :is(p, ul) { margin: 0; }
 .article-source a { color: var(--primary-strong); text-decoration: underline; text-underline-offset: 3px; }
 .article-links { display: grid; gap: 30px; margin-top: 56px; padding-top: 38px; border-top: 1px solid var(--line); }
 .linked-articles { display: grid; gap: 9px; }

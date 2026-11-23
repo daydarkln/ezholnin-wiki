@@ -5,7 +5,7 @@ import Footer from '../../components/Footer.astro'
 import Header from '../../components/Header.astro'
 import KnowledgeTree from '../../components/KnowledgeTree.astro'
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import { getArticleById, getCategoryById, knowledgeArticles } from '../../data/knowledge'
+import { getArticleById, getCategoryById, getChildArticles, knowledgeArticles } from '../../data/knowledge'
 
 export function getStaticPaths() {
   return knowledgeArticles.map((article) => ({ params: { slug: article.slug }, props: { article } }))
@@ -13,6 +13,8 @@ export function getStaticPaths() {
 
 const { article } = Astro.props
 const category = getCategoryById(article.categoryId)
+const parent = article.parentId ? getArticleById(article.parentId) : undefined
+const childArticles = getChildArticles(article.id)
 const relatedArticles = article.relatedIds.flatMap((id: string) => {
   const related = getArticleById(id)
   return related ? [related] : []
@@ -35,7 +37,9 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
     </aside>
     <article class="article-content">
       <nav class="breadcrumbs" aria-label="Хлебные крошки">
-        <a href="/">Вики</a><span>/</span><a href={`/#${article.categoryId}`}>{category.title}</a><span>/</span><span>{article.title}</span>
+        <a href="/">Вики</a><span>/</span><a href={`/#${article.categoryId}`}>{category.title}</a><span>/</span>
+        {parent && <><a href={`/articles/${parent.slug}`}>{parent.title}</a><span>/</span></>}
+        <span aria-current="page">{article.title}</span>
       </nav>
       <header class="article-header">
         <p class="eyebrow">{category.title}</p>
@@ -46,6 +50,14 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
 
       <div class="article-body">
         <p class="article-intro">{article.intro}</p>
+        {childArticles.length > 0 && (
+          <section aria-labelledby="child-articles-title">
+            <h2 id="child-articles-title">Инструкции по CRM</h2>
+            <div class="linked-articles">
+              {childArticles.map((item) => <a class="linked-article" href={`/articles/${item.slug}`}>{item.title}<span>{item.summary}</span></a>)}
+            </div>
+          </section>
+        )}
         {article.sections.map((section) => (
           <section>
             <h2>{section.heading}</h2>
@@ -61,8 +73,17 @@ const nextArticles = article.nextIds.flatMap((id: string) => {
 
         {article.warning && <aside class="warning"><strong>Важно</strong><p>{article.warning}</p></aside>}
 
-        {article.source && (
-          <p class="article-source">Источник: <a href={article.source.url} target="_blank" rel="noreferrer">{article.source.label}</a></p>
+        {article.sources && (
+          <div class="article-source">
+            {article.sources.length === 1 ? (
+              <p>Источник: <a href={article.sources[0].url} target="_blank" rel="noreferrer">{article.sources[0].label}</a></p>
+            ) : (
+              <>
+                <h2>Источники</h2>
+                <ul>{article.sources.map((source) => <li><a href={source.url} target="_blank" rel="noreferrer">{source.label}</a></li>)}</ul>
+              </>
+            )}
+          </div>
         )}
       </div>
 

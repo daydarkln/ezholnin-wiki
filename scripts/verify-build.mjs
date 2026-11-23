@@ -4,8 +4,8 @@ import { join, resolve } from 'node:path'
 
 const dist = resolve('dist')
 const homepage = await readFile(join(dist, 'index.html'), 'utf8')
-const articleDirectories = await readdir(join(dist, 'articles'), { withFileTypes: true })
-const articleCount = articleDirectories.filter((entry) => entry.isDirectory()).length
+const articleFiles = await readdir(join(dist, 'articles'), { withFileTypes: true, recursive: true })
+const articleCount = articleFiles.filter((entry) => entry.isFile() && entry.name === 'index.html').length
 const sitemap = await readFile(join(dist, 'sitemap.xml'), 'utf8')
 const robots = await readFile(join(dist, 'robots.txt'), 'utf8')
 

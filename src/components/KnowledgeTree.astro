@@ -1,5 +1,5 @@
 ---
-import { getArticlesByCategory, knowledgeCategories } from '../data/knowledge'
+import { getArticlesByCategory, getChildArticles, knowledgeCategories } from '../data/knowledge'
 
 type Props = { activeSlug?: string }
 const { activeSlug } = Astro.props
@@ -14,11 +14,21 @@ const { activeSlug } = Astro.props
       <details open={isOpen || undefined}>
         <summary>{category.title}<span>{articles.length}</span></summary>
         <ul>
-          {articles.map((article) => (
-            <li>
-              <a class:list={[{ active: article.slug === activeSlug }]} href={`/articles/${article.slug}`}>{article.title}</a>
-            </li>
-          ))}
+          {articles.filter((article) => !article.parentId).map((article) => {
+            const children = getChildArticles(article.id)
+            return (
+              <li>
+                <a class:list={[{ active: article.slug === activeSlug }]} aria-current={article.slug === activeSlug ? 'page' : undefined} href={`/articles/${article.slug}`}>{article.title}</a>
+                {children.length > 0 && (
+                  <ul class="knowledge-children">
+                    {children.map((child) => (
+                      <li><a class:list={[{ active: child.slug === activeSlug }]} aria-current={child.slug === activeSlug ? 'page' : undefined} href={`/articles/${child.slug}`}>{child.title}</a></li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </details>
     )

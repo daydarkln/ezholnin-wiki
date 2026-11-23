@@ -75,7 +75,7 @@ const popularArticles = popularArticleIds.flatMap((id) => {
                   <h3>{category.title}</h3>
                   <p>{category.description}</p>
                   <ul>
-                    {articles.map((article) => <li><a href={`/articles/${article.slug}`}>{article.title}</a></li>)}
+                    {articles.filter((article) => !article.parentId).map((article) => <li><a href={`/articles/${article.slug}`}>{article.title}</a></li>)}
                   </ul>
                 </section>
               )

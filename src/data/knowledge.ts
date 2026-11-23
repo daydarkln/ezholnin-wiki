@@ -1,9 +1,12 @@
+import { integrationArticles } from './integrations'
+
 export type KnowledgeCategoryId =
   | 'getting-started'
   | 'process'
   | 'payment'
   | 'domain-hosting'
   | 'launch'
+  | 'integrations'
   | 'after-launch'
   | 'faq'
 
@@ -23,6 +26,7 @@ export type KnowledgeArticle = {
   id: string
   slug: string
   categoryId: KnowledgeCategoryId
+  parentId?: string
   title: string
   summary: string
   aliases: string[]
@@ -32,7 +36,7 @@ export type KnowledgeArticle = {
   warning?: string
   relatedIds: string[]
   nextIds: string[]
-  source?: KnowledgeSource
+  sources?: KnowledgeSource[]
   updatedAt: string
 }
 
@@ -48,6 +52,7 @@ export const knowledgeCategories: KnowledgeCategory[] = [
   { id: 'payment', title: 'Стоимость и оплата', description: 'Разработка, домен, хостинг и отдельные работы.' },
   { id: 'domain-hosting', title: 'Домен и хостинг', description: 'Адрес сайта, размещение и безопасная настройка DNS.' },
   { id: 'launch', title: 'Запуск сайта', description: 'Что проверяем перед публикацией.' },
+  { id: 'integrations', title: 'Интеграции', description: 'Как подключить Яндекс Метрику и передавать заявки с сайта в CRM.' },
   { id: 'after-launch', title: 'После запуска', description: 'Изменения, перенос и базовая поисковая подготовка.' },
   { id: 'faq', title: 'Частые вопросы', description: 'Короткие ответы на важные вопросы.' },
 ]
@@ -290,10 +295,10 @@ export const knowledgeArticles: KnowledgeArticle[] = [
     warning: 'Не удаляйте чужие MX, TXT и CNAME-записи. Они могут отвечать за почту, подтверждение сервисов или другой работающий сайт. Для одного имени нельзя одновременно использовать CNAME и A-запись.',
     relatedIds: ['corporate-email', 'managed-hosting', 'launch-checklist'],
     nextIds: ['launch-checklist'],
-    source: {
+    sources: [{
       label: 'Официальная инструкция REG.RU: привязка домена к IP-адресу',
       url: 'https://help.reg.ru/support/dns-servery-i-nastroyka-zony/rabota-s-dns-serverami/kak-privyazat-domen-k-ip-adresu',
-    },
+    }],
     updatedAt: '2026-10-19',
   },
   {
@@ -317,10 +322,10 @@ export const knowledgeArticles: KnowledgeArticle[] = [
     ],
     relatedIds: ['reg-ru-dns', 'domain-basics'],
     nextIds: ['reg-ru-dns'],
-    source: {
+    sources: [{
       label: 'Официальная документация REG.RU о ресурсных записях DNS',
       url: 'https://help.reg.ru/support/dns-servery-i-nastroyka-zony/nastroyka-resursnykh-zapisey-dns/nastroyka-resursnykh-zapisey-v-lichnom-kabinete',
-    },
+    }],
     updatedAt: '2026-10-19',
   },
   {
@@ -338,10 +343,11 @@ export const knowledgeArticles: KnowledgeArticle[] = [
         bullets: ['Согласованы тексты, цены, фотографии, юридические данные и контакты.', 'Выбран и оплачен домен; понятен вариант размещения.', 'Домен настроен или подготовлены доступы к вашему хостингу.', 'Формы, кнопки, телефон, почта и Telegram ведут туда, куда нужно.', 'Сайт корректно выглядит на телефоне и компьютере.', 'HTTPS включён, сайт открывается по основному адресу.'],
       },
     ],
-    relatedIds: ['reg-ru-dns', 'development-process', 'after-launch'],
+    relatedIds: ['reg-ru-dns', 'development-process', 'after-launch', 'yandex-metrika', 'crm-integration'],
     nextIds: ['after-launch'],
     updatedAt: '2026-10-19',
   },
+  ...integrationArticles,
   {
     id: 'after-launch',
     slug: 'after-launch',
@@ -466,4 +472,8 @@ export function getCategoryById(id: KnowledgeCategoryId): KnowledgeCategory {
 
 export function getArticlesByCategory(categoryId: KnowledgeCategoryId): KnowledgeArticle[] {
   return knowledgeArticles.filter((article) => article.categoryId === categoryId)
+}
+
+export function getChildArticles(parentId: string): KnowledgeArticle[] {
+  return knowledgeArticles.filter((article) => article.parentId === parentId)
 }

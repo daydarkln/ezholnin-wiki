@@ -12,6 +12,23 @@ test('renders an article at its direct URL', async ({ page }) => {
   await expect(page.getByText('IP, который пришлёт разработчик').first()).toBeVisible()
 })
 
+test('opens a CRM subpage from the guide and finds it through search', async ({ page }) => {
+  await page.goto('/#integrations')
+  await page.locator('#integrations').getByRole('link', { name: 'Как подключить сайт к CRM' }).click()
+  const guides = page.getByRole('region', { name: 'Инструкции по CRM' })
+  await expect(guides.getByRole('link')).toHaveCount(4)
+  await guides.getByRole('link', { name: /Как подключить Битрикс24/ }).click()
+  await expect(page).toHaveURL(/\/articles\/crm\/bitrix24\/?$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Как подключить Битрикс24' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Хлебные крошки' }).getByRole('link', { name: 'Как подключить сайт к CRM' }).click()
+  await expect(guides).toBeVisible()
+
+  await page.goto('/')
+  await page.getByRole('searchbox', { name: 'Поиск по вики' }).fill('1с crm')
+  const result = page.locator('[data-search-results]').getByRole('link', { name: /Как подключить 1С:CRM/ })
+  await expect(result).toHaveAttribute('href', '/articles/crm/1c-crm')
+})
+
 test('opens knowledge navigation on mobile', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/articles/reg-ru-dns')
